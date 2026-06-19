@@ -12,8 +12,10 @@ const FIELD =
   'bg-gray-50 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 w-full focus:outline-none focus:border-gray-400 dark:focus:border-gray-500 focus:ring-2 focus:ring-gray-100 dark:focus:ring-gray-700 transition-colors';
 
 const EMPTY_VISUAL: Visual = {
-  size: '', content: '', referenceUrl: '', referenceImage: '',
+  size: '', mainTitle: '', subTitle: '', bodyText: '',
+  referenceUrl: '', referenceImage: '',
   logoOnVisual: false, sensitiveElement: false,
+  ctaButton: false, ctaText: '',
 };
 
 interface FormState {
@@ -86,7 +88,7 @@ export default function RequestForm({ onSuccess }: { onSuccess?: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const ok = form.requester && form.type && form.date &&
-      form.visuals.length > 0 && form.visuals.every(v => v.size.trim() && v.content.trim());
+      form.visuals.length > 0 && form.visuals.every(v => v.size.trim() && v.mainTitle.trim());
     if (!ok) { setMsg('err'); return; }
     setLoading(true);
     try {
@@ -195,10 +197,22 @@ export default function RequestForm({ onSuccess }: { onSuccess?: () => void }) {
                 <input type="text" value={v.size} onChange={e => updateVisual(i, { size: e.target.value })} placeholder="e.g. 1080×1080 px, PNG" className={FIELD} />
               </div>
 
-              {/* Content */}
+              {/* Main title */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-400 dark:text-gray-500">Content</label>
-                <textarea value={v.content} onChange={e => updateVisual(i, { content: e.target.value })} rows={3} placeholder="Describe what goes in this visual — message, imagery, colors, tone, text to include…" className={`${FIELD} resize-y`} />
+                <label className="text-xs font-medium text-gray-400 dark:text-gray-500">Main title</label>
+                <input type="text" value={v.mainTitle} onChange={e => updateVisual(i, { mainTitle: e.target.value })} placeholder="e.g. Summer Sale — Up to 50% Off" className={FIELD} />
+              </div>
+
+              {/* Sub title */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-gray-400 dark:text-gray-500">Sub title <span className="font-normal opacity-60">(optional)</span></label>
+                <input type="text" value={v.subTitle} onChange={e => updateVisual(i, { subTitle: e.target.value })} placeholder="e.g. Limited time only · Free shipping on orders $50+" className={FIELD} />
+              </div>
+
+              {/* Body text */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-gray-400 dark:text-gray-500">Body text <span className="font-normal opacity-60">(optional)</span></label>
+                <textarea value={v.bodyText} onChange={e => updateVisual(i, { bodyText: e.target.value })} rows={2} placeholder="Additional details — imagery description, colors, tone, any extra copy…" className={`${FIELD} resize-y`} />
               </div>
 
               {/* Toggles */}
@@ -213,7 +227,20 @@ export default function RequestForm({ onSuccess }: { onSuccess?: () => void }) {
                   onChange={() => updateVisual(i, { sensitiveElement: !v.sensitiveElement })}
                   label="Sensitive element"
                 />
+                <Toggle
+                  checked={v.ctaButton}
+                  onChange={() => updateVisual(i, { ctaButton: !v.ctaButton, ctaText: v.ctaButton ? '' : v.ctaText })}
+                  label="CTA button"
+                />
               </div>
+
+              {/* CTA text — shown only when CTA toggle is on */}
+              {v.ctaButton && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-gray-400 dark:text-gray-500">CTA button text</label>
+                  <input type="text" value={v.ctaText} onChange={e => updateVisual(i, { ctaText: e.target.value })} placeholder="e.g. Shop Now, Learn More, Get Started…" className={FIELD} autoFocus />
+                </div>
+              )}
 
               {/* Reference */}
               <div className="flex flex-col gap-1.5">

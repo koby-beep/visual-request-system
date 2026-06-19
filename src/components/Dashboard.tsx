@@ -208,10 +208,9 @@ export default function Dashboard({ refreshKey }: { refreshKey: number }) {
                           </span>
                         )}
 
-                        {/* Content */}
-                        {v.content && (
-                          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{v.content}</p>
-                        )}
+                        {v.mainTitle && <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{v.mainTitle}</p>}
+                        {v.subTitle  && <p className="text-sm text-gray-600 dark:text-gray-400">{v.subTitle}</p>}
+                        {v.bodyText  && <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">{v.bodyText}</p>}
 
                         {/* Reference */}
                         {(v.referenceUrl || v.referenceImage) && (

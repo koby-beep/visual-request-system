@@ -5,11 +5,15 @@ export type Priority = 'urgent' | 'high' | 'medium' | 'low';
 
 export interface Visual {
   size: string;
-  content: string;
+  mainTitle: string;
+  subTitle: string;
+  bodyText: string;
   referenceUrl: string;
   referenceImage: string;
   logoOnVisual: boolean;
   sensitiveElement: boolean;
+  ctaButton: boolean;
+  ctaText: string;
 }
 
 export interface VisualRequest {

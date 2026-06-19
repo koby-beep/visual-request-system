@@ -151,7 +151,12 @@ export default function TrackRequests() {
                             {v.logoOnVisual && <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600">logo</span>}
                             {v.sensitiveElement && <span className="text-[10px] px-1.5 py-0.5 bg-amber-50 dark:bg-amber-950 rounded text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900">sensitive</span>}
                           </div>
-                          {v.content && <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{v.content}</p>}
+                          {v.mainTitle && <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{v.mainTitle}</p>}
+                          {v.subTitle  && <p className="text-sm text-gray-600 dark:text-gray-400">{v.subTitle}</p>}
+                          {v.bodyText  && <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">{v.bodyText}</p>}
+                          {v.ctaButton && v.ctaText && (
+                            <span className="self-start text-xs px-2.5 py-1 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium">{v.ctaText}</span>
+                          )}
                           {(v.referenceUrl || v.referenceImage) && (
                             <div className="flex items-center gap-2 mt-0.5">
                               {v.referenceUrl && <a href={v.referenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 underline underline-offset-2 max-w-[240px] truncate">{v.referenceUrl}</a>}
