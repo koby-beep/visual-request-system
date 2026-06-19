@@ -350,18 +350,27 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                         <button onClick={() => patch(r.id, { status: 'done' })} className="px-4 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">Mark done</button>
                       )}
                       {r.status === 'done' && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-gray-400 dark:text-gray-500">Rate:</span>
-                          {[1,2,3,4,5].map(star => (
-                            <button
-                              key={star}
-                              onClick={() => patch(r.id, { rating: star })}
-                              className={`text-xl leading-none transition-colors ${(r.rating ?? 0) >= star ? 'text-amber-400' : 'text-gray-200 dark:text-gray-700 hover:text-amber-300'}`}
-                            >
-                              ★
-                            </button>
-                          ))}
-                          {r.rating && <span className="text-xs text-gray-400 ml-0.5">{r.rating}/5</span>}
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-gray-400 dark:text-gray-500">Admin rating:</span>
+                            {[1,2,3,4,5].map(star => (
+                              <button
+                                key={star}
+                                onClick={() => patch(r.id, { rating: star })}
+                                className={`text-xl leading-none transition-colors ${(r.rating ?? 0) >= star ? 'text-amber-400' : 'text-gray-200 dark:text-gray-700 hover:text-amber-300'}`}
+                              >★</button>
+                            ))}
+                            {r.rating && <span className="text-xs text-gray-400 ml-0.5">{r.rating}/5</span>}
+                          </div>
+                          {r.requesterRating && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs text-gray-400 dark:text-gray-500">Requester:</span>
+                              {[1,2,3,4,5].map(s => (
+                                <span key={s} className={`text-xl leading-none ${r.requesterRating! >= s ? 'text-blue-400' : 'text-gray-200 dark:text-gray-700'}`}>★</span>
+                              ))}
+                              <span className="text-xs text-gray-400 ml-0.5">{r.requesterRating}/5</span>
+                            </div>
+                          )}
                         </div>
                       )}
                       {(r.status === 'rejected' || r.status === 'done') && (

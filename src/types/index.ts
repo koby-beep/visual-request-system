@@ -26,6 +26,7 @@ export interface VisualRequest {
   deliverables?: string[];
   assignedTo?: string;
   rating?: number;
+  requesterRating?: number;
 }
 
 export interface Designer {

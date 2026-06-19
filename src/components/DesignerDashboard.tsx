@@ -281,13 +281,25 @@ export default function DesignerDashboard({ designer, onLogout }: { designer: De
                   )}
                 </div>
 
-                {/* ── Rating display (read-only) ── */}
-                {r.rating && (
-                  <div className="px-4 pb-3 pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center gap-1.5">
-                    <span className="text-xs text-gray-400 dark:text-gray-500">Rating:</span>
-                    {[1,2,3,4,5].map(s => (
-                      <span key={s} className={`text-xl leading-none ${r.rating! >= s ? 'text-amber-400' : 'text-gray-200 dark:text-gray-700'}`}>★</span>
-                    ))}
+                {/* ── Ratings (read-only) ── */}
+                {(r.rating || r.requesterRating) && (
+                  <div className="px-4 pb-3 pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center gap-4 flex-wrap">
+                    {r.rating && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-gray-400 dark:text-gray-500">Admin:</span>
+                        {[1,2,3,4,5].map(s => (
+                          <span key={s} className={`text-xl leading-none ${r.rating! >= s ? 'text-amber-400' : 'text-gray-200 dark:text-gray-700'}`}>★</span>
+                        ))}
+                      </div>
+                    )}
+                    {r.requesterRating && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-gray-400 dark:text-gray-500">Requester:</span>
+                        {[1,2,3,4,5].map(s => (
+                          <span key={s} className={`text-xl leading-none ${r.requesterRating! >= s ? 'text-blue-400' : 'text-gray-200 dark:text-gray-700'}`}>★</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
