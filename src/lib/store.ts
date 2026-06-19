@@ -6,9 +6,13 @@ const KEY = 'visual-requests';
 const DATA_FILE = path.join(process.cwd(), 'data', 'requests.json');
 
 export async function readRequests(): Promise<VisualRequest[]> {
-  if (process.env.KV_REST_API_URL) {
-    const { kv } = await import('@vercel/kv');
-    return (await kv.get<VisualRequest[]>(KEY)) ?? [];
+  if (process.env.UPSTASH_REDIS_REST_URL) {
+    const { Redis } = await import('@upstash/redis');
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+    return (await redis.get<VisualRequest[]>(KEY)) ?? [];
   }
   try {
     if (!fs.existsSync(DATA_FILE)) return [];
@@ -19,9 +23,13 @@ export async function readRequests(): Promise<VisualRequest[]> {
 }
 
 export async function writeRequests(requests: VisualRequest[]): Promise<void> {
-  if (process.env.KV_REST_API_URL) {
-    const { kv } = await import('@vercel/kv');
-    await kv.set(KEY, requests);
+  if (process.env.UPSTASH_REDIS_REST_URL) {
+    const { Redis } = await import('@upstash/redis');
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+    await redis.set(KEY, requests);
     return;
   }
   const dir = path.dirname(DATA_FILE);
