@@ -293,11 +293,29 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                               {v.logoOnVisual && <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600">logo</span>}
                               {v.sensitiveElement && <span className="text-[10px] px-1.5 py-0.5 bg-amber-50 dark:bg-amber-950 rounded text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900">sensitive</span>}
                             </div>
-                            {v.mainTitle && <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{v.mainTitle}</p>}
-                            {v.subTitle  && <p className="text-sm text-gray-600 dark:text-gray-400">{v.subTitle}</p>}
-                            {v.bodyText  && <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">{v.bodyText}</p>}
-                            {v.ctaButton && v.ctaText && (
-                              <span className="self-start text-xs px-2.5 py-1 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium">{v.ctaText}</span>
+                            {r.format === 'video' ? (
+                              <>
+                                {v.videoSizes.length > 0 && (
+                                  <div className="flex gap-1 flex-wrap">
+                                    {v.videoSizes.map(s => (
+                                      <span key={s} className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-900 capitalize">
+                                        {s === 'horizontal' ? '1920×1080' : s === 'vertical' ? '1080×1920' : s === 'square' ? '1080×1080' : v.customVideoSize || 'Custom'}
+                                      </span>
+                                    ))}
+                                    {v.subtitle && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600">subtitles</span>}
+                                  </div>
+                                )}
+                                {v.description && <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{v.description}</p>}
+                                {v.script      && <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-1 italic">Script: {v.script}</p>}
+                                {v.textInVideo && <p className="text-xs text-gray-500 dark:text-gray-500">Text: {v.textInVideo}</p>}
+                              </>
+                            ) : (
+                              <>
+                                {v.mainTitle && <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{v.mainTitle}</p>}
+                                {v.subTitle  && <p className="text-sm text-gray-600 dark:text-gray-400">{v.subTitle}</p>}
+                                {v.bodyText  && <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">{v.bodyText}</p>}
+                                {v.ctaButton && v.ctaText && <span className="self-start text-xs px-2.5 py-1 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium">{v.ctaText}</span>}
+                              </>
                             )}
                             {(v.referenceUrl || v.referenceImage) && (
                               <div className="flex items-center gap-2 mt-0.5">
