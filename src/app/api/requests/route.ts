@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { readRequests, writeRequests } from '@/lib/store';
-import { VisualRequest } from '@/types';
+import { VisualFormat, VisualRequest } from '@/types';
 import { randomUUID } from 'crypto';
 
 export async function GET() {
@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     requester: body.requester,
     brand: body.brand ?? '',
     type: body.type,
+    format: (body.format ?? 'static') as VisualFormat,
     visuals: body.visuals ?? [],
     date: body.date,
     status: 'pending',

@@ -128,6 +128,11 @@ export default function DesignerDashboard({ designer, onLogout }: { designer: De
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_CONFIG[r.status].className}`}>{STATUS_CONFIG[r.status].label}</span>
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PRIORITY_CONFIG[p].className}`}>{PRIORITY_CONFIG[p].label}</span>
                     <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium ${typeColor}`}>{r.type}</span>
+                    {r.format && (
+                      <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${r.format === 'video' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-900' : 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600'}`}>
+                        {r.format === 'video' ? '🎬 Video' : '🖼 Static'}
+                      </span>
+                    )}
                     {r.brand && <span className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">{r.brand}</span>}
                     <span className="text-xs text-gray-400 dark:text-gray-500">by {r.requester}</span>
                   </div>

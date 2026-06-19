@@ -97,6 +97,11 @@ export default function TrackRequests() {
                         <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium ${typeColor}`}>
                           {r.type}
                         </span>
+                        {r.format && (
+                          <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${r.format === 'video' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-900' : 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600'}`}>
+                            {r.format === 'video' ? '🎬 Video' : '🖼 Static'}
+                          </span>
+                        )}
                         {r.brand && (
                           <span className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
                             {r.brand}

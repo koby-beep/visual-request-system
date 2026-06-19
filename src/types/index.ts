@@ -1,4 +1,5 @@
-export type VisualType = 'SMM ad' | 'PPC ad' | 'Poster' | 'Landing page' | 'Video';
+export type VisualType = 'SMM ad' | 'PPC ad' | 'Poster' | 'Landing page';
+export type VisualFormat = 'static' | 'video';
 export type Status = 'pending' | 'approved' | 'rejected' | 'in-progress' | 'done';
 export type Priority = 'urgent' | 'high' | 'medium' | 'low';
 
@@ -16,6 +17,7 @@ export interface VisualRequest {
   requester: string;
   brand: string;
   type: VisualType;
+  format: VisualFormat;
   visuals: Visual[];
   date: string;
   status: Status;

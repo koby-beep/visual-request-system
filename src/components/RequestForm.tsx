@@ -1,12 +1,12 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Visual, VisualType } from '@/types';
+import { Visual, VisualFormat, VisualType } from '@/types';
 import { getDaysLeft, getPriority, PRIORITY_CONFIG } from '@/lib/priority';
 import DatePicker from './DatePicker';
 import BrandSelect from './BrandSelect';
 
-const VISUAL_TYPES: VisualType[] = ['SMM ad', 'PPC ad', 'Poster', 'Landing page', 'Video'];
+const VISUAL_TYPES: VisualType[] = ['SMM ad', 'PPC ad', 'Poster', 'Landing page'];
 
 const FIELD =
   'bg-gray-50 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 w-full focus:outline-none focus:border-gray-400 dark:focus:border-gray-500 focus:ring-2 focus:ring-gray-100 dark:focus:ring-gray-700 transition-colors';
@@ -20,12 +20,13 @@ interface FormState {
   requester: string;
   brand: string;
   type: string;
+  format: VisualFormat;
   date: string;
   visuals: Visual[];
 }
 
 const EMPTY: FormState = {
-  requester: '', brand: '', type: '', date: '', visuals: [{ ...EMPTY_VISUAL }],
+  requester: '', brand: '', type: '', format: 'static', date: '', visuals: [{ ...EMPTY_VISUAL }],
 };
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
@@ -141,6 +142,28 @@ export default function RequestForm({ onSuccess }: { onSuccess?: () => void }) {
             <option value="">Select a type…</option>
             {VISUAL_TYPES.map(t => <option key={t}>{t}</option>)}
           </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Video or static?</label>
+          <div className="flex gap-2">
+            {(['static', 'video'] as VisualFormat[]).map(f => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, format: f }))}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors capitalize ${
+                  form.format === f
+                    ? f === 'video'
+                      ? 'bg-purple-600 border-purple-600 text-white'
+                      : 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white text-white dark:text-gray-900'
+                    : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                {f === 'video' ? '🎬 Video' : '🖼 Static'}
+              </button>
+            ))}
+          </div>
         </div>
 
       </div>
