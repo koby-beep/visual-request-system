@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import RequestForm from '@/components/RequestForm';
-import Dashboard from '@/components/Dashboard';
+import TrackRequests from '@/components/TrackRequests';
+import HistoryView from '@/components/HistoryView';
 import { useTheme } from '@/hooks/useTheme';
 
-type Tab = 'form' | 'dashboard';
+type Tab = 'form' | 'track' | 'history';
 
 function SunIcon() {
   return (
@@ -29,7 +30,6 @@ function MoonIcon() {
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>('form');
-  const [refreshKey, setRefreshKey] = useState(0);
   const { dark, toggle, mounted } = useTheme();
 
   return (
@@ -40,21 +40,35 @@ export default function Home() {
             🎨 Visual Requests
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Submit and track design requests for your team
+            Submit and track your design requests
           </p>
         </div>
 
-        <button
-          onClick={toggle}
-          aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        >
-          {mounted ? (dark ? <SunIcon /> : <MoonIcon />) : <MoonIcon />}
-        </button>
+        <div className="flex items-center gap-2">
+          <a
+            href="/designer"
+            className="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            Designer
+          </a>
+          <a
+            href="/admin"
+            className="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            Admin
+          </a>
+          <button
+            onClick={toggle}
+            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            {mounted ? (dark ? <SunIcon /> : <MoonIcon />) : <MoonIcon />}
+          </button>
+        </div>
       </div>
 
       <div className="inline-flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-5">
-        {(['form', 'dashboard'] as Tab[]).map(t => (
+        {(['form', 'track', 'history'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -64,17 +78,14 @@ export default function Home() {
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
           >
-            {t === 'form' ? '+ New request' : 'Dashboard'}
+            {t === 'form' ? '+ New request' : t === 'track' ? 'My requests' : 'History'}
           </button>
         ))}
       </div>
 
-      {tab === 'form' && (
-        <RequestForm onSuccess={() => setRefreshKey(k => k + 1)} />
-      )}
-      {tab === 'dashboard' && (
-        <Dashboard refreshKey={refreshKey} />
-      )}
+      {tab === 'form'    && <RequestForm onSuccess={() => setTab('track')} />}
+      {tab === 'track'   && <TrackRequests />}
+      {tab === 'history' && <HistoryView />}
     </main>
   );
 }

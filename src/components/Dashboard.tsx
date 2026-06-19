@@ -153,12 +153,7 @@ export default function Dashboard({ refreshKey }: { refreshKey: number }) {
                       </span>
                       {r.brand && (
                         <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
-                          {r.brand}{r.logoOnVisual && <span className="opacity-60 ml-1">· logo</span>}
-                        </span>
-                      )}
-                      {!r.brand && r.logoOnVisual && (
-                        <span className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
-                          logo on visual
+                          {r.brand}
                         </span>
                       )}
                       <span className="text-xs text-gray-400 dark:text-gray-500">by {r.requester}</span>

@@ -15,7 +15,6 @@ export async function POST(request: Request) {
     id: randomUUID(),
     requester: body.requester,
     brand: body.brand ?? '',
-    logoOnVisual: body.logoOnVisual ?? false,
     type: body.type,
     visuals: body.visuals ?? [],
     date: body.date,
@@ -25,6 +24,5 @@ export async function POST(request: Request) {
 
   requests.unshift(newRequest);
   await writeRequests(requests);
-
   return NextResponse.json(newRequest, { status: 201 });
 }
