@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { Visual, VisualType } from '@/types';
 import { getDaysLeft, getPriority, PRIORITY_CONFIG } from '@/lib/priority';
+import DatePicker from './DatePicker';
 
 const VISUAL_TYPES: VisualType[] = ['SMM ad', 'PPC ad', 'Poster', 'Landing page', 'Video'];
 
@@ -140,7 +141,7 @@ export default function RequestForm({ onSuccess }: { onSuccess?: () => void }) {
 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Date required</label>
-          <input type="date" value={form.date} onChange={setField('date')} className={FIELD} />
+          <DatePicker value={form.date} onChange={v => { setForm(f => ({ ...f, date: v })); setMsg('idle'); }} fieldClass={FIELD} />
           {priority && (
             <p className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
               <span className={`px-2 py-0.5 rounded-full font-semibold ${PRIORITY_CONFIG[priority].className}`}>
