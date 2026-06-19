@@ -6,11 +6,11 @@ const KEY = 'visual-requests';
 const DATA_FILE = path.join(process.cwd(), 'data', 'requests.json');
 
 export async function readRequests(): Promise<VisualRequest[]> {
-  if (process.env.UPSTASH_REDIS_REST_URL) {
+  if (process.env.KV_REST_API_URL) {
     const { Redis } = await import('@upstash/redis');
     const redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env.KV_REST_API_URL,
+      token: process.env.KV_REST_API_TOKEN!,
     });
     return (await redis.get<VisualRequest[]>(KEY)) ?? [];
   }
@@ -23,11 +23,11 @@ export async function readRequests(): Promise<VisualRequest[]> {
 }
 
 export async function writeRequests(requests: VisualRequest[]): Promise<void> {
-  if (process.env.UPSTASH_REDIS_REST_URL) {
+  if (process.env.KV_REST_API_URL) {
     const { Redis } = await import('@upstash/redis');
     const redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env.KV_REST_API_URL,
+      token: process.env.KV_REST_API_TOKEN!,
     });
     await redis.set(KEY, requests);
     return;
