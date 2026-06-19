@@ -4,26 +4,30 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { VisualRequest } from '@/types';
 import { getDaysLeft, getPriority, PRIORITY_CONFIG, PRIORITY_ORDER } from '@/lib/priority';
 import { STATUS_CONFIG } from '@/lib/status';
+import DatePicker from './DatePicker';
 
 const TYPE_COLORS: Record<string, string> = {
   'SMM ad':       'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-900',
   'PPC ad':       'bg-pink-50   text-pink-700   border border-pink-200   dark:bg-pink-950   dark:text-pink-400   dark:border-pink-900',
   'Poster':       'bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950 dark:text-indigo-400 dark:border-indigo-900',
   'Landing page': 'bg-cyan-50   text-cyan-700   border border-cyan-200   dark:bg-cyan-950   dark:text-cyan-400   dark:border-cyan-900',
-  'Video':        'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-900',
 };
+
+const FIELD = 'bg-gray-50 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 w-full focus:outline-none focus:border-gray-400 dark:focus:border-gray-500 transition-colors';
 
 function fmtDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-interface Designer { id: string; name: string; username: string; }
+interface Designer   { id: string; name: string; username: string; }
+interface EditState  { id: string; date: string; note: string; }
 
 export default function DesignerDashboard({ designer, onLogout }: { designer: Designer; onLogout: () => void }) {
   const [requests,  setRequests]  = useState<VisualRequest[]>([]);
   const [loading,   setLoading]   = useState(true);
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [dragging,  setDragging]  = useState<Record<string, boolean>>({});
+  const [editing,   setEditing]   = useState<EditState | null>(null);
   const uploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const load = useCallback(async () => {
@@ -51,16 +55,19 @@ export default function DesignerDashboard({ designer, onLogout }: { designer: De
     load();
   };
 
+  const saveEdit = async (id: string) => {
+    if (!editing) return;
+    await patch(id, { date: editing.date, adminNote: editing.note || undefined });
+    setEditing(null);
+  };
+
   const uploadFiles = async (r: VisualRequest, files: FileList | File[]) => {
     setUploading(u => ({ ...u, [r.id]: true }));
     const fileArr = Array.from(files);
     const newDeliverables: string[] = [];
     await Promise.all(fileArr.map(file => new Promise<void>(resolve => {
       const reader = new FileReader();
-      reader.onload = ev => {
-        newDeliverables.push(ev.target?.result as string);
-        resolve();
-      };
+      reader.onload = ev => { newDeliverables.push(ev.target?.result as string); resolve(); };
       reader.readAsDataURL(file);
     })));
     await patch(r.id, { deliverables: [...(r.deliverables ?? []), ...newDeliverables] });
@@ -117,34 +124,70 @@ export default function DesignerDashboard({ designer, onLogout }: { designer: De
             const daysText = days < 0 ? 'Overdue' : days === 0 ? 'Due today' : `${days}d left`;
             const daysColor = days < 0 ? 'text-red-600 dark:text-red-400 font-semibold' : days === 0 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-gray-500 dark:text-gray-400';
             const typeColor = TYPE_COLORS[r.type] ?? 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600';
-            const isDone = r.status === 'done';
+            const isDone    = r.status === 'done';
+            const isEditing = editing?.id === r.id;
 
             return (
               <div key={r.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
 
                 {/* ── Header ── */}
-                <div className="px-4 pt-4 pb-3">
-                  <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_CONFIG[r.status].className}`}>{STATUS_CONFIG[r.status].label}</span>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PRIORITY_CONFIG[p].className}`}>{PRIORITY_CONFIG[p].label}</span>
-                    <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium ${typeColor}`}>{r.type}</span>
-                    {r.format && (
-                      <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${r.format === 'video' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-900' : 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600'}`}>
-                        {r.format === 'video' ? '🎬 Video' : '🖼 Static'}
-                      </span>
-                    )}
-                    {r.brand && <span className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">{r.brand}</span>}
-                    <span className="text-xs text-gray-400 dark:text-gray-500">by {r.requester}</span>
+                <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_CONFIG[r.status].className}`}>{STATUS_CONFIG[r.status].label}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PRIORITY_CONFIG[p].className}`}>{PRIORITY_CONFIG[p].label}</span>
+                      <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium ${typeColor}`}>{r.type}</span>
+                      {r.format && (
+                        <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${r.format === 'video' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-900' : 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600'}`}>
+                          {r.format === 'video' ? '🎬 Video' : '🖼 Static'}
+                        </span>
+                      )}
+                      {r.brand && <span className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">{r.brand}</span>}
+                      <span className="text-xs text-gray-400 dark:text-gray-500">by {r.requester}</span>
+                    </div>
+                    <p className={`text-xs ${daysColor}`}>
+                      {fmtDate(r.date)} · {daysText} · {r.visuals.length} visual{r.visuals.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
-                  <p className={`text-xs ${daysColor}`}>
-                    {fmtDate(r.date)} · {daysText} · {r.visuals.length} visual{r.visuals.length !== 1 ? 's' : ''}
-                  </p>
+
+                  {/* Edit icon */}
+                  <button
+                    onClick={() => isEditing ? setEditing(null) : setEditing({ id: r.id, date: r.date, note: r.adminNote ?? '' })}
+                    title="Edit"
+                    className={`p-1.5 rounded-lg transition-colors shrink-0 ${isEditing ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200' : 'text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
                 </div>
 
-                {/* Admin note */}
-                {r.adminNote && (
+                {/* Edit panel */}
+                {isEditing && editing && (
+                  <div className="mx-4 mb-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Edit</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs text-gray-400 dark:text-gray-500">Due date</label>
+                        <DatePicker value={editing.date} onChange={v => setEditing(prev => prev ? { ...prev, date: v } : prev)} fieldClass={FIELD} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs text-gray-400 dark:text-gray-500">Note (visible to requester)</label>
+                        <textarea value={editing.note} onChange={e => setEditing(prev => prev ? { ...prev, note: e.target.value } : prev)} className={`${FIELD} resize-none`} rows={2} placeholder="Optional note…" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <button onClick={() => saveEdit(r.id)} className="px-4 py-1.5 text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">Save</button>
+                      <button onClick={() => setEditing(null)} className="px-4 py-1.5 text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Note display */}
+                {r.adminNote && !isEditing && (
                   <div className="mx-4 mb-3 px-3 py-2 rounded-lg text-xs bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900">
-                    <span className="font-semibold">Note from admin: </span>{r.adminNote}
+                    <span className="font-semibold">Note: </span>{r.adminNote}
                   </div>
                 )}
 
@@ -189,29 +232,17 @@ export default function DesignerDashboard({ designer, onLogout }: { designer: De
                     <div className="flex flex-wrap gap-2 mb-3">
                       {r.deliverables!.map((d, i) => (
                         <div key={i} className="relative group">
-                          <img
-                            src={d}
-                            alt={`Upload ${i + 1}`}
-                            onClick={() => window.open(d, '_blank')}
-                            className="h-20 w-20 rounded-xl object-cover border-2 border-gray-200 dark:border-gray-600 cursor-pointer hover:opacity-80 transition-opacity shadow-sm"
-                          />
+                          <img src={d} alt={`Upload ${i + 1}`} onClick={() => window.open(d, '_blank')} className="h-20 w-20 rounded-xl object-cover border-2 border-gray-200 dark:border-gray-600 cursor-pointer hover:opacity-80 transition-opacity shadow-sm" />
                           {!isDone && (
-                            <button
-                              onClick={() => removeDeliverable(r, i)}
-                              className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-red-500 text-white rounded-full text-[11px] leading-none items-center justify-center hidden group-hover:flex shadow"
-                            >
-                              ×
-                            </button>
+                            <button onClick={() => removeDeliverable(r, i)} className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-red-500 text-white rounded-full text-[11px] leading-none items-center justify-center hidden group-hover:flex shadow">×</button>
                           )}
-                          <span className="absolute bottom-1 left-1 text-[9px] bg-black/50 text-white rounded px-1 py-0.5 leading-tight">
-                            {i + 1}
-                          </span>
+                          <span className="absolute bottom-1 left-1 text-[9px] bg-black/50 text-white rounded px-1 py-0.5 leading-tight">{i + 1}</span>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* Drop zone — only shown when not done */}
+                  {/* Drop zone */}
                   {!isDone && (
                     <div
                       onDragOver={e => { e.preventDefault(); setDragging(d => ({ ...d, [r.id]: true })); }}
@@ -237,24 +268,14 @@ export default function DesignerDashboard({ designer, onLogout }: { designer: De
                             <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                               {(r.deliverables ?? []).length > 0 ? 'Upload more files' : 'Upload your finished visual'}
                             </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                              Click to browse or drag &amp; drop · PNG, JPG, PDF
-                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Click to browse or drag &amp; drop · PNG, JPG, PDF</p>
                           </div>
                         </>
                       )}
-                      <input
-                        ref={el => { uploadRefs.current[r.id] = el; }}
-                        type="file"
-                        accept="image/*,application/pdf"
-                        multiple
-                        className="hidden"
-                        onChange={e => { if (e.target.files?.length) uploadFiles(r, e.target.files); }}
-                      />
+                      <input ref={el => { uploadRefs.current[r.id] = el; }} type="file" accept="image/*,application/pdf" multiple className="hidden" onChange={e => { if (e.target.files?.length) uploadFiles(r, e.target.files); }} />
                     </div>
                   )}
 
-                  {/* Done state — read-only */}
                   {isDone && (r.deliverables ?? []).length === 0 && (
                     <p className="text-xs text-gray-400 dark:text-gray-500 italic">No files uploaded for this request.</p>
                   )}
@@ -263,7 +284,7 @@ export default function DesignerDashboard({ designer, onLogout }: { designer: De
                 {/* ── Rating display (read-only) ── */}
                 {r.rating && (
                   <div className="px-4 pb-3 pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center gap-1.5">
-                    <span className="text-xs text-gray-400 dark:text-gray-500">Admin rating:</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">Rating:</span>
                     {[1,2,3,4,5].map(s => (
                       <span key={s} className={`text-xl leading-none ${r.rating! >= s ? 'text-amber-400' : 'text-gray-200 dark:text-gray-700'}`}>★</span>
                     ))}
@@ -271,23 +292,31 @@ export default function DesignerDashboard({ designer, onLogout }: { designer: De
                 )}
 
                 {/* ── Action row ── */}
-                {(r.status === 'approved' || r.status === 'in-progress') && (
-                  <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center gap-3 bg-gray-50/50 dark:bg-gray-900/20">
-                    {r.status === 'approved' && (
-                      <button onClick={() => patch(r.id, { status: 'in-progress' })} className="px-4 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        Start work
-                      </button>
-                    )}
-                    {r.status === 'in-progress' && (r.deliverables ?? []).length > 0 && (
-                      <button onClick={() => patch(r.id, { status: 'done' })} className="px-4 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                        Mark as done
-                      </button>
-                    )}
-                    {r.status === 'in-progress' && (r.deliverables ?? []).length === 0 && (
-                      <p className="text-xs text-gray-400 dark:text-gray-500 italic">Upload the finished visual above to mark as done</p>
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 flex-wrap">
+                  {r.status === 'pending' && (
+                    <button onClick={() => patch(r.id, { status: 'approved' })} className="px-4 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                      ✓ Approve
+                    </button>
+                  )}
+                  {r.status === 'approved' && (
+                    <button onClick={() => patch(r.id, { status: 'in-progress' })} className="px-4 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                      Start work
+                    </button>
+                  )}
+                  {r.status === 'in-progress' && (r.deliverables ?? []).length > 0 && (
+                    <button onClick={() => patch(r.id, { status: 'done' })} className="px-4 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                      Mark as done
+                    </button>
+                  )}
+                  {r.status === 'in-progress' && (r.deliverables ?? []).length === 0 && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 italic">Upload the finished visual above to mark as done</p>
+                  )}
+                  {r.status === 'done' && (
+                    <button onClick={() => patch(r.id, { status: 'in-progress' })} className="px-4 py-1.5 text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      Reopen
+                    </button>
+                  )}
+                </div>
 
               </div>
             );
